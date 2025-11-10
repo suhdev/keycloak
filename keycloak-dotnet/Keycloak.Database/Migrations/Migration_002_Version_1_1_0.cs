@@ -6,7 +6,7 @@ namespace Keycloak.Database.Migrations;
 /// Updates for Keycloak version 1.1.0.
 /// Combines Liquibase migrations: jpa-changelog-1.1.0.Beta1.xml, jpa-changelog-1.1.0.Final.xml
 /// </summary>
-[Migration(2, "Version 1.1.0 Updates")]
+[Migration(2, "Version 1.1.0 - Client attributes and session updates")]
 public class Migration_002_Version_1_1_0 : Migration
 {
     public override void Up()
@@ -73,6 +73,9 @@ public class Migration_002_Version_1_1_0 : Migration
             .AddColumn("CERTIFICATE").AsString(2048).Nullable()
             .AddColumn("CODE_SECRET").AsString(255).Nullable();
 
+        // Rename EVENT_ENTITY.TIME to EVENT_TIME (from 1.1.0.Final)
+        Rename.Column("TIME").OnTable("EVENT_ENTITY").To("EVENT_TIME");
+
         // Note: The original migration has a custom change class (AddRealmCodeSecret)
         // which would generate code secrets for existing realms. 
         // In a production migration, this would need to be implemented.
@@ -93,6 +96,9 @@ public class Migration_002_Version_1_1_0 : Migration
         // Remove columns from REALM
         Delete.Column("CODE_SECRET").FromTable("REALM");
         Delete.Column("CERTIFICATE").FromTable("REALM");
+
+        // Rename EVENT_ENTITY.EVENT_TIME back to TIME
+        Rename.Column("EVENT_TIME").OnTable("EVENT_ENTITY").To("TIME");
 
         // Remove columns from CLIENT
         Delete.Column("NODE_REREG_TIMEOUT").FromTable("CLIENT");
