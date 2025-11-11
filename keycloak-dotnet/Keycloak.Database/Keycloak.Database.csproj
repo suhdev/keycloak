@@ -12,4 +12,8 @@
     <PackageReference Include="FluentMigrator.Runner.Postgres" Version="7.1.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="database-schema.sql" />
+  </ItemGroup>
+
 </Project>

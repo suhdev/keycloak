@@ -5,28 +5,26 @@ This is a .NET Core port of Keycloak, focusing on porting the complete database 
 ## Project Structure
 
 - **Keycloak.Database**: Class library containing FluentMigrator database migrations  
-- **Keycloak.Database.Runner**: Console application for running migrations  
-- **Migrations/**: Database migration files based on database-schema.sql
+  - `database-schema.sql`: Complete Keycloak schema with UUID ID columns (embedded resource)
+  - `Migrations/`: FluentMigrator migration that executes the SQL script
+- **Keycloak.Database.Runner**: Console application for running migrations
 
 ## Database Migrations
 
-The database migration is generated from the complete database schema file (`database-schema.sql`) which represents the current production Keycloak schema with all 87 tables.
+The database migration uses the complete database schema file (`database-schema.sql`) as an embedded resource. The SQL file has been modified to use UUID type for all ID columns instead of VARCHAR(36).
 
 ### Migration Approach
 
-Instead of incrementally porting 76 Liquibase XML files, this approach uses the final database schema as the source of truth:
-
-1. **Single Comprehensive Migration** - `Migration_001_CompleteSchema.cs`
-   - Creates all 87 Keycloak database tables
-   - Includes indexes, constraints, and relationships
-   - ID columns use UUID type (converted from VARCHAR(36))
-   - Column names and constraint names match the source schema exactly
+1. **Embedded SQL Script**: The complete `database-schema.sql` is embedded in the Keycloak.Database assembly
+2. **Single Migration**: `Migration_001_CompleteSchema.cs` reads and executes the embedded SQL script
+3. **UUID Conversion**: All `id` and `*_id` columns have been converted from VARCHAR(36) to UUID type
+4. **Foreign Key Compatibility**: All foreign key references have been updated to match the UUID type
 
 ### Key Features
 
 - **UUID Type for IDs**: All `id` and `*_id` columns use PostgreSQL UUID type instead of VARCHAR(36)
-- **Constraint Name Matching**: All constraint names (primary keys, foreign keys, unique constraints) match the source schema
-- **Complete Schema**: Single migration creates the entire Keycloak database structure
+- **Embedded Resource**: SQL schema is embedded in the assembly for easy deployment
+- **Complete Schema**: Single migration creates the entire Keycloak database structure (87 tables)
 - **PostgreSQL Optimized**: Uses PostgreSQL-specific types and features
 
 ## Requirements
@@ -108,40 +106,56 @@ And 60+ more tables covering groups, roles, scopes, policies, and other Keycloak
 
 ### ID Column Conversions
 
-As requested, all ID columns have been converted from VARCHAR(36) to UUID:
+All ID columns have been converted from VARCHAR(36) to UUID:
 
-```csharp
-// Original SQL: id varchar(36) not null
-// FluentMigrator: 
-.WithColumn("id").AsGuid().NotNullable()
+```sql
+-- Before (original SQL)
+id varchar(36) not null
+realm_id varchar(36)
 
-// Original SQL: realm_id varchar(36)
-// FluentMigrator:
-.WithColumn("realm_id").AsGuid().Nullable()
+-- After (modified SQL)
+id uuid not null
+realm_id uuid
 ```
 
-### Constraint Names
+This applies to:
+- All columns named `id`
+- All columns ending with `_id` (e.g., `realm_id`, `client_id`, `user_id`)
 
-All constraint names match the source schema exactly:
+Foreign key references have been automatically updated to match the UUID type.
+
+### Migration Implementation
+
+The migration reads the embedded SQL file and executes it:
 
 ```csharp
-// Primary keys
-.PrimaryKey("constraint_7")           // client
-.PrimaryKey("constraint_4a")          // realm
-.PrimaryKey("constraint_fb")          // user_entity
-
-// Unique constraints
-.UniqueConstraint("uk_b71cjlbenv945rb6gcon438at")  // client (realm_id, client_id)
-.UniqueConstraint("uk_orvsdmla56612eaefiq6wl5oi")  // realm (name)
+[Migration(1, "Execute Complete Keycloak Schema from SQL")]
+public class Migration_001_CompleteSchema : Migration
+{
+    public override void Up()
+    {
+        // Read embedded SQL script
+        var assembly = Assembly.GetExecutingAssembly();
+        var resourceName = "Keycloak.Database.database-schema.sql";
+        
+        using (var stream = assembly.GetManifestResourceStream(resourceName))
+        using (var reader = new StreamReader(stream))
+        {
+            var sql = reader.ReadToEnd();
+            Execute.Sql(sql);
+        }
+    }
+}
 ```
 
 ## Current Status
 
-✅ Complete database schema ported from SQL to FluentMigrator  
-✅ All 87 tables created with proper data types  
-✅ ID columns converted to UUID type  
-✅ Constraint names match source schema  
-✅ Indexes created for performance  
+✅ Complete database schema embedded as resource  
+✅ All 87 tables with UUID ID columns  
+✅ ID columns converted from VARCHAR(36) to UUID  
+✅ Foreign keys updated to match UUID type  
+✅ SQL script embedded in assembly  
+✅ Migration executes embedded script  
 ✅ CLI runner with up/down/list commands  
 ✅ Clean build with zero errors/warnings  
 
@@ -154,18 +168,21 @@ All constraint names match the source schema exactly:
 - Microsoft.Extensions.DependencyInjection 9.0.x
 - Microsoft.Extensions.Logging.Console 9.0.x
 
-## Migration Generation
+## Schema Modification Process
 
-The migration was generated programmatically from `database-schema.sql` using a Python script that:
+The database schema was modified programmatically using a Python script that:
 
-1. Parses PostgreSQL CREATE TABLE statements
-2. Converts column types to FluentMigrator syntax
-3. Identifies ID columns (ending in `_id` or named `id`) and converts VARCHAR(36) to UUID
-4. Preserves all column attributes (NOT NULL, DEFAULT values)
-5. Extracts and applies constraints and indexes
-6. Maintains exact constraint naming
+1. Reads the original `database-schema.sql` file
+2. Identifies all `id` and `*_id` columns with VARCHAR(36) type
+3. Converts them to UUID type
+4. Preserves all other column attributes and constraints
+5. Foreign key references are automatically compatible with the UUID type
 
-This ensures 100% fidelity to the source schema while adapting to .NET/FluentMigrator conventions.
+This ensures:
+- ✅ All ID columns use proper UUID type
+- ✅ Foreign key relationships remain intact
+- ✅ Performance benefits of native UUID type
+- ✅ PostgreSQL best practices
 
 ## License
 

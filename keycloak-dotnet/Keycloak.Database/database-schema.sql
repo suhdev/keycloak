@@ -27,7 +27,7 @@ create table if not exists databasechangeloglock
 
 create table if not exists client
 (
-    id                           varchar(36)           not null
+    id uuid           not null
         constraint constraint_7
             primary key,
     enabled                      boolean default false not null,
@@ -40,7 +40,7 @@ create table if not exists client
     bearer_only                  boolean default false not null,
     management_url               varchar(255),
     surrogate_auth_required      boolean default false not null,
-    realm_id                     varchar(36),
+    realm_id uuid,
     protocol                     varchar(255),
     node_rereg_timeout           integer default 0,
     frontchannel_logout          boolean default false not null,
@@ -64,7 +64,7 @@ create index if not exists idx_client_id
 
 create table if not exists event_entity
 (
-    id                      varchar(36) not null
+    id uuid not null
         constraint constraint_4
             primary key,
     client_id               varchar(255),
@@ -87,7 +87,7 @@ create index if not exists idx_event_entity_user_id_type
 
 create table if not exists realm
 (
-    id                           varchar(36)               not null
+    id uuid               not null
         constraint constraint_4a
             primary key,
     access_code_lifespan         integer,
@@ -148,7 +148,7 @@ create table if not exists realm
 
 create table if not exists keycloak_role
 (
-    id                      varchar(36)           not null
+    id uuid           not null
         constraint constraint_a
             primary key,
     client_realm_constraint varchar(255),
@@ -194,7 +194,7 @@ create index if not exists idx_realm_master_adm_cli
 create table if not exists realm_attribute
 (
     name     varchar(255) not null,
-    realm_id varchar(36)  not null
+    realm_id uuid  not null
         constraint fk_8shxd6l3e9atqukacxgpffptw
             references realm,
     value    text,
@@ -207,7 +207,7 @@ create index if not exists idx_realm_attr_realm
 
 create table if not exists realm_events_listeners
 (
-    realm_id varchar(36)  not null
+    realm_id uuid  not null
         constraint fk_h846o4h0w8epx5nxev9f5y69j
             references realm,
     value    varchar(255) not null,
@@ -224,7 +224,7 @@ create table if not exists realm_required_credential
     form_label varchar(255),
     input      boolean default false not null,
     secret     boolean default false not null,
-    realm_id   varchar(36)           not null
+    realm_id uuid           not null
         constraint fk_5hg65lybevavkqfki3kponh9v
             references realm,
     constraint constraint_92
@@ -233,7 +233,7 @@ create table if not exists realm_required_credential
 
 create table if not exists realm_smtp_config
 (
-    realm_id varchar(36)  not null
+    realm_id uuid  not null
         constraint fk_70ej8xdxgxd0b9hh6180irr0o
             references realm,
     value    varchar(255),
@@ -244,7 +244,7 @@ create table if not exists realm_smtp_config
 
 create table if not exists redirect_uris
 (
-    client_id varchar(36)  not null
+    client_id uuid  not null
         constraint fk_1burs8pb4ouj97h5wuppahv9f
             references client,
     value     varchar(255) not null,
@@ -257,10 +257,10 @@ create index if not exists idx_redir_uri_client
 
 create table if not exists scope_mapping
 (
-    client_id varchar(36) not null
+    client_id uuid not null
         constraint fk_ouse064plmlr732lxjcn1q5f1
             references client,
-    role_id   varchar(36) not null,
+    role_id uuid not null,
     constraint constraint_81
         primary key (client_id, role_id)
 );
@@ -270,7 +270,7 @@ create index if not exists idx_scope_mapping_role
 
 create table if not exists user_entity
 (
-    id                          varchar(36)           not null
+    id uuid           not null
         constraint constraint_fb
             primary key,
     email                       varchar(255),
@@ -293,12 +293,12 @@ create table if not exists user_entity
 
 create table if not exists credential
 (
-    id              varchar(36) not null
+    id uuid not null
         constraint constraint_f
             primary key,
     salt            bytea,
     type            varchar(255),
-    user_id         varchar(36)
+    user_id uuid
         constraint fk_pfyr0glasqyl0dei3kl69r6v0
             references user_entity,
     created_date    bigint,
@@ -316,10 +316,10 @@ create table if not exists user_attribute
 (
     name                       varchar(255)                                                         not null,
     value                      varchar(255),
-    user_id                    varchar(36)                                                          not null
+    user_id uuid                                                          not null
         constraint fk_5hrm2vlf9ql5fu043kqepovbr
             references user_entity,
-    id                         varchar(36) default 'sybase-needs-something-here'::character varying not null
+    id uuid default 'sybase-needs-something-here'::character varying not null
         constraint constraint_user_attribute_pk
             primary key,
     long_value_hash            bytea,
@@ -347,7 +347,7 @@ create index if not exists idx_user_service_account
 
 create table if not exists user_federation_provider
 (
-    id                  varchar(36) not null
+    id uuid not null
         constraint constraint_5c
             primary key,
     changed_sync_period integer,
@@ -356,14 +356,14 @@ create table if not exists user_federation_provider
     last_sync           integer,
     priority            integer,
     provider_name       varchar(255),
-    realm_id            varchar(36)
+    realm_id uuid
         constraint fk_1fj32f6ptolw2qy60cd8n01e8
             references realm
 );
 
 create table if not exists user_federation_config
 (
-    user_federation_provider_id varchar(36)  not null
+    user_federation_provider_id uuid  not null
         constraint fk_t13hpu1j94r2ebpekr39x5eu5
             references user_federation_provider,
     value                       varchar(255),
@@ -377,7 +377,7 @@ create index if not exists idx_usr_fed_prv_realm
 
 create table if not exists user_required_action
 (
-    user_id         varchar(36)                                 not null
+    user_id uuid                                 not null
         constraint fk_6qj3w1jw9cvafhe19bwsiuvmd
             references user_entity,
     required_action varchar(255) default ' '::character varying not null,
@@ -391,7 +391,7 @@ create index if not exists idx_user_reqactions
 create table if not exists user_role_mapping
 (
     role_id varchar(255) not null,
-    user_id varchar(36)  not null
+    user_id uuid  not null
         constraint fk_c4fqv34p1mbylloxang7b1q3l
             references user_entity,
     constraint constraint_c
@@ -403,7 +403,7 @@ create index if not exists idx_user_role_mapping
 
 create table if not exists web_origins
 (
-    client_id varchar(36)  not null
+    client_id uuid  not null
         constraint fk_lojpho213xcx4wnkog82ssrfy
             references client,
     value     varchar(255) not null,
@@ -416,7 +416,7 @@ create index if not exists idx_web_orig_client
 
 create table if not exists client_attributes
 (
-    client_id varchar(36)  not null
+    client_id uuid  not null
         constraint fk3c47c64beacca966
             references client,
     name      varchar(255) not null,
@@ -430,7 +430,7 @@ create index if not exists idx_client_att_by_name_value
 
 create table if not exists client_node_registrations
 (
-    client_id varchar(36)  not null
+    client_id uuid  not null
         constraint fk4129723ba992f594
             references client,
     value     integer,
@@ -442,11 +442,11 @@ create table if not exists client_node_registrations
 create table if not exists federated_identity
 (
     identity_provider  varchar(255) not null,
-    realm_id           varchar(36),
+    realm_id uuid,
     federated_user_id  varchar(255),
     federated_username varchar(255),
     token              text,
-    user_id            varchar(36)  not null
+    user_id uuid  not null
         constraint fk404288b92ef007a6
             references user_entity,
     constraint constraint_40
@@ -461,7 +461,7 @@ create index if not exists idx_fedidentity_feduser
 
 create table if not exists identity_provider
 (
-    internal_id                varchar(36)           not null
+    internal_id uuid           not null
         constraint constraint_2b
             primary key,
     enabled                    boolean default false not null,
@@ -469,13 +469,13 @@ create table if not exists identity_provider
     provider_id                varchar(255),
     store_token                boolean default false not null,
     authenticate_by_default    boolean default false not null,
-    realm_id                   varchar(36)
+    realm_id uuid
         constraint fk2b4ebc52ae5c3b34
             references realm,
     add_token_role             boolean default true  not null,
     trust_email                boolean default false not null,
-    first_broker_login_flow_id varchar(36),
-    post_broker_login_flow_id  varchar(36),
+    first_broker_login_flow_id uuid,
+    post_broker_login_flow_id uuid,
     provider_display_name      varchar(255),
     link_only                  boolean default false not null,
     organization_id            varchar(255),
@@ -495,7 +495,7 @@ create index if not exists idx_idp_for_login
 
 create table if not exists identity_provider_config
 (
-    identity_provider_id varchar(36)  not null
+    identity_provider_id uuid  not null
         constraint fkdc4897cf864c4e43
             references identity_provider,
     value                text,
@@ -506,7 +506,7 @@ create table if not exists identity_provider_config
 
 create table if not exists realm_supported_locales
 (
-    realm_id varchar(36)  not null
+    realm_id uuid  not null
         constraint fk_supported_locales_realm
             references realm,
     value    varchar(255) not null,
@@ -519,7 +519,7 @@ create index if not exists idx_realm_supp_local_realm
 
 create table if not exists realm_enabled_event_types
 (
-    realm_id varchar(36)  not null
+    realm_id uuid  not null
         constraint fk_h846o4h0w8epx5nwedrf5y69j
             references realm,
     value    varchar(255) not null,
@@ -532,7 +532,7 @@ create index if not exists idx_realm_evt_types_realm
 
 create table if not exists migration_model
 (
-    id          varchar(36)      not null
+    id uuid      not null
         constraint constraint_migmod
             primary key,
     version     varchar(36)
@@ -548,13 +548,13 @@ create index if not exists idx_update_time
 
 create table if not exists identity_provider_mapper
 (
-    id              varchar(36)  not null
+    id uuid  not null
         constraint constraint_idpm
             primary key,
     name            varchar(255) not null,
     idp_alias       varchar(255) not null,
     idp_mapper_name varchar(255) not null,
-    realm_id        varchar(36)  not null
+    realm_id uuid  not null
         constraint fk_idpm_realm
             references realm
 );
@@ -564,7 +564,7 @@ create index if not exists idx_id_prov_mapp_realm
 
 create table if not exists idp_mapper_config
 (
-    idp_mapper_id varchar(36)  not null
+    idp_mapper_id uuid  not null
         constraint fk_idpmconfig
             references identity_provider_mapper,
     value         text,
@@ -575,11 +575,11 @@ create table if not exists idp_mapper_config
 
 create table if not exists user_consent
 (
-    id                      varchar(36) not null
+    id uuid not null
         constraint constraint_grntcsnt_pm
             primary key,
     client_id               varchar(255),
-    user_id                 varchar(36) not null
+    user_id uuid not null
         constraint fk_grntcsnt_user
             references user_entity,
     created_date            bigint,
@@ -597,7 +597,7 @@ create index if not exists idx_user_consent
 
 create table if not exists admin_event_entity
 (
-    id               varchar(36) not null
+    id uuid not null
         constraint constraint_admin_event_entity
             primary key,
     admin_event_time bigint,
@@ -619,11 +619,11 @@ create index if not exists idx_admin_event_time
 
 create table if not exists authenticator_config
 (
-    id       varchar(36) not null
+    id uuid not null
         constraint constraint_auth_pk
             primary key,
     alias    varchar(255),
-    realm_id varchar(36)
+    realm_id uuid
         constraint fk_auth_realm
             references realm
 );
@@ -633,15 +633,15 @@ create index if not exists idx_auth_config_realm
 
 create table if not exists authentication_flow
 (
-    id          varchar(36)                                         not null
+    id uuid                                         not null
         constraint constraint_auth_flow_pk
             primary key,
     alias       varchar(255),
     description varchar(255),
-    realm_id    varchar(36)
+    realm_id uuid
         constraint fk_auth_flow_realm
             references realm,
-    provider_id varchar(36) default 'basic-flow'::character varying not null,
+    provider_id uuid default 'basic-flow'::character varying not null,
     top_level   boolean     default false                           not null,
     built_in    boolean     default false                           not null
 );
@@ -651,21 +651,21 @@ create index if not exists idx_auth_flow_realm
 
 create table if not exists authentication_execution
 (
-    id                 varchar(36)           not null
+    id uuid           not null
         constraint constraint_auth_exec_pk
             primary key,
     alias              varchar(255),
     authenticator      varchar(36),
-    realm_id           varchar(36)
+    realm_id uuid
         constraint fk_auth_exec_realm
             references realm,
-    flow_id            varchar(36)
+    flow_id uuid
         constraint fk_auth_exec_flow
             references authentication_flow,
     requirement        integer,
     priority           integer,
     authenticator_flow boolean default false not null,
-    auth_flow_id       varchar(36),
+    auth_flow_id uuid,
     auth_config        varchar(36)
 );
 
@@ -677,7 +677,7 @@ create index if not exists idx_auth_exec_flow
 
 create table if not exists authenticator_config_entry
 (
-    authenticator_id varchar(36)  not null,
+    authenticator_id uuid  not null,
     value            text,
     name             varchar(255) not null,
     constraint constraint_auth_cfg_pk
@@ -686,15 +686,15 @@ create table if not exists authenticator_config_entry
 
 create table if not exists user_federation_mapper
 (
-    id                     varchar(36)  not null
+    id uuid  not null
         constraint constraint_fedmapperpm
             primary key,
     name                   varchar(255) not null,
-    federation_provider_id varchar(36)  not null
+    federation_provider_id uuid  not null
         constraint fk_fedmapperpm_fedprv
             references user_federation_provider,
     federation_mapper_type varchar(255) not null,
-    realm_id               varchar(36)  not null
+    realm_id uuid  not null
         constraint fk_fedmapperpm_realm
             references realm
 );
@@ -707,7 +707,7 @@ create index if not exists idx_usr_fed_map_realm
 
 create table if not exists user_federation_mapper_config
 (
-    user_federation_mapper_id varchar(36)  not null
+    user_federation_mapper_id uuid  not null
         constraint fk_fedmapper_cfg
             references user_federation_mapper,
     value                     varchar(255),
@@ -718,12 +718,12 @@ create table if not exists user_federation_mapper_config
 
 create table if not exists required_action_provider
 (
-    id             varchar(36)           not null
+    id uuid           not null
         constraint constraint_req_act_prv_pk
             primary key,
     alias          varchar(255),
     name           varchar(255),
-    realm_id       varchar(36)
+    realm_id uuid
         constraint fk_req_act_realm
             references realm,
     enabled        boolean default false not null,
@@ -737,7 +737,7 @@ create index if not exists idx_req_act_prov_realm
 
 create table if not exists required_action_config
 (
-    required_action_id varchar(36)  not null,
+    required_action_id uuid  not null,
     value              text,
     name               varchar(255) not null,
     constraint constraint_req_act_cfg_pk
@@ -746,9 +746,9 @@ create table if not exists required_action_config
 
 create table if not exists offline_user_session
 (
-    user_session_id      varchar(36)       not null,
+    user_session_id uuid       not null,
     user_id              varchar(255)      not null,
-    realm_id             varchar(36)       not null,
+    realm_id uuid       not null,
     created_on           integer           not null,
     offline_flag         varchar(4)        not null,
     data                 text,
@@ -770,7 +770,7 @@ create index if not exists idx_offline_uss_by_broker_session_id
 
 create table if not exists offline_client_session
 (
-    user_session_id         varchar(36)                                     not null,
+    user_session_id uuid                                     not null,
     client_id               varchar(255)                                    not null,
     offline_flag            varchar(4)                                      not null,
     timestamp               integer,
@@ -792,12 +792,12 @@ create index if not exists idx_offline_css_by_client_storage_provider
 
 create table if not exists keycloak_group
 (
-    id           varchar(36)       not null
+    id uuid       not null
         constraint constraint_group
             primary key,
     name         varchar(255),
     parent_group varchar(36)       not null,
-    realm_id     varchar(36),
+    realm_id uuid,
     type         integer default 0 not null,
     description  varchar(255),
     constraint sibling_names
@@ -806,8 +806,8 @@ create table if not exists keycloak_group
 
 create table if not exists group_role_mapping
 (
-    role_id  varchar(36) not null,
-    group_id varchar(36) not null
+    role_id uuid not null,
+    group_id uuid not null
         constraint fk_group_role_group
             references keycloak_group,
     constraint constraint_group_role
@@ -819,12 +819,12 @@ create index if not exists idx_group_role_mapp_group
 
 create table if not exists group_attribute
 (
-    id       varchar(36) default 'sybase-needs-something-here'::character varying not null
+    id uuid default 'sybase-needs-something-here'::character varying not null
         constraint constraint_group_attribute_pk
             primary key,
     name     varchar(255)                                                         not null,
     value    varchar(255),
-    group_id varchar(36)                                                          not null
+    group_id uuid                                                          not null
         constraint fk_group_attribute_group
             references keycloak_group
 );
@@ -837,8 +837,8 @@ create index if not exists idx_group_att_by_name_value
 
 create table if not exists user_group_membership
 (
-    group_id        varchar(36)  not null,
-    user_id         varchar(36)  not null
+    group_id uuid  not null,
+    user_id uuid  not null
         constraint fk_user_group_user
             references user_entity,
     membership_type varchar(255) not null,
@@ -851,10 +851,10 @@ create index if not exists idx_user_group_mapping
 
 create table if not exists realm_default_groups
 (
-    realm_id varchar(36) not null
+    realm_id uuid not null
         constraint fk_def_groups_realm
             references realm,
-    group_id varchar(36) not null
+    group_id uuid not null
         constraint con_group_id_def_groups
             unique,
     constraint constr_realm_default_groups
@@ -866,11 +866,11 @@ create index if not exists idx_realm_def_grp_realm
 
 create table if not exists client_scope
 (
-    id          varchar(36) not null
+    id uuid not null
         constraint pk_cli_template
             primary key,
     name        varchar(255),
-    realm_id    varchar(36),
+    realm_id uuid,
     description varchar(255),
     protocol    varchar(255),
     constraint uk_cli_scope
@@ -879,16 +879,16 @@ create table if not exists client_scope
 
 create table if not exists protocol_mapper
 (
-    id                   varchar(36)  not null
+    id uuid  not null
         constraint constraint_pcm
             primary key,
     name                 varchar(255) not null,
     protocol             varchar(255) not null,
     protocol_mapper_name varchar(255) not null,
-    client_id            varchar(36)
+    client_id uuid
         constraint fk_pcm_realm
             references client,
-    client_scope_id      varchar(36)
+    client_scope_id uuid
         constraint fk_cli_scope_mapper
             references client_scope
 );
@@ -901,7 +901,7 @@ create index if not exists idx_clscope_protmap
 
 create table if not exists protocol_mapper_config
 (
-    protocol_mapper_id varchar(36)  not null
+    protocol_mapper_id uuid  not null
         constraint fk_pmconfig
             references protocol_mapper,
     value              text,
@@ -915,7 +915,7 @@ create index if not exists idx_realm_clscope
 
 create table if not exists client_scope_attributes
 (
-    scope_id varchar(36)  not null
+    scope_id uuid  not null
         constraint fk_cl_scope_attr_scope
             references client_scope,
     value    varchar(2048),
@@ -929,10 +929,10 @@ create index if not exists idx_clscope_attrs
 
 create table if not exists client_scope_role_mapping
 (
-    scope_id varchar(36) not null
+    scope_id uuid not null
         constraint fk_cl_scope_rm_scope
             references client_scope,
-    role_id  varchar(36) not null,
+    role_id uuid not null,
     constraint pk_template_scope
         primary key (scope_id, role_id)
 );
@@ -945,7 +945,7 @@ create index if not exists idx_role_clscope
 
 create table if not exists resource_server
 (
-    id                   varchar(36)            not null
+    id uuid            not null
         constraint pk_resource_server
             primary key,
     allow_rs_remote_mgmt boolean  default false not null,
@@ -955,14 +955,14 @@ create table if not exists resource_server
 
 create table if not exists resource_server_resource
 (
-    id                   varchar(36)           not null
+    id uuid           not null
         constraint constraint_farsr
             primary key,
     name                 varchar(255)          not null,
     type                 varchar(255),
     icon_uri             varchar(255),
     owner                varchar(255)          not null,
-    resource_server_id   varchar(36)           not null
+    resource_server_id uuid           not null
         constraint fk_frsrho213xcx4wnkog82ssrfy
             references resource_server,
     owner_managed_access boolean default false not null,
@@ -976,12 +976,12 @@ create index if not exists idx_res_srv_res_res_srv
 
 create table if not exists resource_server_scope
 (
-    id                 varchar(36)  not null
+    id uuid  not null
         constraint constraint_farsrs
             primary key,
     name               varchar(255) not null,
     icon_uri           varchar(255),
-    resource_server_id varchar(36)  not null
+    resource_server_id uuid  not null
         constraint fk_frsrso213xcx4wnkog82ssrfy
             references resource_server,
     display_name       varchar(255),
@@ -994,7 +994,7 @@ create index if not exists idx_res_srv_scope_res_srv
 
 create table if not exists resource_server_policy
 (
-    id                 varchar(36)  not null
+    id uuid  not null
         constraint constraint_farsrp
             primary key,
     name               varchar(255) not null,
@@ -1002,7 +1002,7 @@ create table if not exists resource_server_policy
     type               varchar(255) not null,
     decision_strategy  smallint,
     logic              smallint,
-    resource_server_id varchar(36)  not null
+    resource_server_id uuid  not null
         constraint fk_frsrpo213xcx4wnkog82ssrfy
             references resource_server,
     owner              varchar(255),
@@ -1015,7 +1015,7 @@ create index if not exists idx_res_serv_pol_res_serv
 
 create table if not exists policy_config
 (
-    policy_id varchar(36)  not null
+    policy_id uuid  not null
         constraint fkdc34197cf864c4e43
             references resource_server_policy,
     name      varchar(255) not null,
@@ -1026,10 +1026,10 @@ create table if not exists policy_config
 
 create table if not exists resource_scope
 (
-    resource_id varchar(36) not null
+    resource_id uuid not null
         constraint fk_frsrpos13xcx4wnkog82ssrfy
             references resource_server_resource,
-    scope_id    varchar(36) not null
+    scope_id uuid not null
         constraint fk_frsrps213xcx4wnkog82ssrfy
             references resource_server_scope,
     constraint constraint_farsrsp
@@ -1041,10 +1041,10 @@ create index if not exists idx_res_scope_scope
 
 create table if not exists resource_policy
 (
-    resource_id varchar(36) not null
+    resource_id uuid not null
         constraint fk_frsrpos53xcx4wnkog82ssrfy
             references resource_server_resource,
-    policy_id   varchar(36) not null
+    policy_id uuid not null
         constraint fk_frsrpp213xcx4wnkog82ssrfy
             references resource_server_policy,
     constraint constraint_farsrpp
@@ -1056,10 +1056,10 @@ create index if not exists idx_res_policy_policy
 
 create table if not exists scope_policy
 (
-    scope_id  varchar(36) not null
+    scope_id uuid not null
         constraint fk_frsrpass3xcx4wnkog82ssrfy
             references resource_server_scope,
-    policy_id varchar(36) not null
+    policy_id uuid not null
         constraint fk_frsrasp13xcx4wnkog82ssrfy
             references resource_server_policy,
     constraint constraint_farsrsps
@@ -1071,10 +1071,10 @@ create index if not exists idx_scope_policy_policy
 
 create table if not exists associated_policy
 (
-    policy_id            varchar(36) not null
+    policy_id uuid not null
         constraint fk_frsrpas14xcx4wnkog82ssrfy
             references resource_server_policy,
-    associated_policy_id varchar(36) not null
+    associated_policy_id uuid not null
         constraint fk_frsr5s213xcx4wnkog82ssrfy
             references resource_server_policy,
     constraint constraint_farsrpap
@@ -1088,7 +1088,7 @@ create table if not exists broker_link
 (
     identity_provider   varchar(255) not null,
     storage_provider_id varchar(255),
-    realm_id            varchar(36)  not null,
+    realm_id uuid  not null,
     broker_user_id      varchar(255),
     broker_username     varchar(255),
     token               text,
@@ -1099,13 +1099,13 @@ create table if not exists broker_link
 
 create table if not exists fed_user_attribute
 (
-    id                         varchar(36)  not null
+    id uuid  not null
         constraint constr_fed_user_attr_pk
             primary key,
     name                       varchar(255) not null,
     user_id                    varchar(255) not null,
-    realm_id                   varchar(36)  not null,
-    storage_provider_id        varchar(36),
+    realm_id uuid  not null,
+    storage_provider_id uuid,
     value                      varchar(2024),
     long_value_hash            bytea,
     long_value_hash_lower_case bytea,
@@ -1123,13 +1123,13 @@ create index if not exists fed_user_attr_long_values_lower_case
 
 create table if not exists fed_user_consent
 (
-    id                      varchar(36)  not null
+    id uuid  not null
         constraint constr_fed_user_consent_pk
             primary key,
     client_id               varchar(255),
     user_id                 varchar(255) not null,
-    realm_id                varchar(36)  not null,
-    storage_provider_id     varchar(36),
+    realm_id uuid  not null,
+    storage_provider_id uuid,
     created_date            bigint,
     last_updated_date       bigint,
     client_storage_provider varchar(36),
@@ -1147,15 +1147,15 @@ create index if not exists idx_fu_consent
 
 create table if not exists fed_user_credential
 (
-    id                  varchar(36)  not null
+    id uuid  not null
         constraint constr_fed_user_cred_pk
             primary key,
     salt                bytea,
     type                varchar(255),
     created_date        bigint,
     user_id             varchar(255) not null,
-    realm_id            varchar(36)  not null,
-    storage_provider_id varchar(36),
+    realm_id uuid  not null,
+    storage_provider_id uuid,
     user_label          varchar(255),
     secret_data         text,
     credential_data     text,
@@ -1170,10 +1170,10 @@ create index if not exists idx_fu_credential_ru
 
 create table if not exists fed_user_group_membership
 (
-    group_id            varchar(36)  not null,
+    group_id uuid  not null,
     user_id             varchar(255) not null,
-    realm_id            varchar(36)  not null,
-    storage_provider_id varchar(36),
+    realm_id uuid  not null,
+    storage_provider_id uuid,
     constraint constr_fed_user_group
         primary key (group_id, user_id)
 );
@@ -1188,8 +1188,8 @@ create table if not exists fed_user_required_action
 (
     required_action     varchar(255) default ' '::character varying not null,
     user_id             varchar(255)                                not null,
-    realm_id            varchar(36)                                 not null,
-    storage_provider_id varchar(36),
+    realm_id uuid                                 not null,
+    storage_provider_id uuid,
     constraint constr_fed_required_action
         primary key (required_action, user_id)
 );
@@ -1202,10 +1202,10 @@ create index if not exists idx_fu_required_action_ru
 
 create table if not exists fed_user_role_mapping
 (
-    role_id             varchar(36)  not null,
+    role_id uuid  not null,
     user_id             varchar(255) not null,
-    realm_id            varchar(36)  not null,
-    storage_provider_id varchar(36),
+    realm_id uuid  not null,
+    storage_provider_id uuid,
     constraint constr_fed_user_role
         primary key (role_id, user_id)
 );
@@ -1218,14 +1218,14 @@ create index if not exists idx_fu_role_mapping_ru
 
 create table if not exists component
 (
-    id            varchar(36) not null
+    id uuid not null
         constraint constr_component_pk
             primary key,
     name          varchar(255),
-    parent_id     varchar(36),
-    provider_id   varchar(36),
+    parent_id uuid,
+    provider_id uuid,
     provider_type varchar(255),
-    realm_id      varchar(36)
+    realm_id uuid
         constraint fk_component_realm
             references realm,
     sub_type      varchar(255)
@@ -1233,10 +1233,10 @@ create table if not exists component
 
 create table if not exists component_config
 (
-    id           varchar(36)  not null
+    id uuid  not null
         constraint constr_component_config_pk
             primary key,
-    component_id varchar(36)  not null
+    component_id uuid  not null
         constraint fk_component_config
             references component,
     name         varchar(255) not null,
@@ -1258,15 +1258,15 @@ create table if not exists federated_user
         constraint constr_federated_user
             primary key,
     storage_provider_id varchar(255),
-    realm_id            varchar(36)  not null
+    realm_id uuid  not null
 );
 
 create table if not exists client_initial_access
 (
-    id              varchar(36) not null
+    id uuid not null
         constraint cnstr_client_init_acc_pk
             primary key,
-    realm_id        varchar(36) not null
+    realm_id uuid not null
         constraint fk_client_init_acc_realm
             references realm,
     timestamp       integer,
@@ -1280,8 +1280,8 @@ create index if not exists idx_client_init_acc_realm
 
 create table if not exists client_auth_flow_bindings
 (
-    client_id    varchar(36)  not null,
-    flow_id      varchar(36),
+    client_id uuid  not null,
+    flow_id uuid,
     binding_name varchar(255) not null,
     constraint c_cli_flow_bind
         primary key (client_id, binding_name)
@@ -1304,10 +1304,10 @@ create index if not exists idx_cl_clscope
 
 create table if not exists default_client_scope
 (
-    realm_id      varchar(36)           not null
+    realm_id uuid           not null
         constraint fk_r_def_cli_scope_realm
             references realm,
-    scope_id      varchar(36)           not null,
+    scope_id uuid           not null,
     default_scope boolean default false not null,
     constraint r_def_cli_scope_bind
         primary key (realm_id, scope_id)
@@ -1321,10 +1321,10 @@ create index if not exists idx_defcls_scope
 
 create table if not exists user_consent_client_scope
 (
-    user_consent_id varchar(36) not null
+    user_consent_id uuid not null
         constraint fk_grntcsnt_clsc_usc
             references user_consent,
-    scope_id        varchar(36) not null,
+    scope_id uuid not null,
     constraint constraint_grntcsnt_clsc_pm
         primary key (user_consent_id, scope_id)
 );
@@ -1337,31 +1337,31 @@ create index if not exists idx_usconsent_scope_id
 
 create table if not exists fed_user_consent_cl_scope
 (
-    user_consent_id varchar(36) not null,
-    scope_id        varchar(36) not null,
+    user_consent_id uuid not null,
+    scope_id uuid not null,
     constraint constraint_fgrntcsnt_clsc_pm
         primary key (user_consent_id, scope_id)
 );
 
 create table if not exists resource_server_perm_ticket
 (
-    id                 varchar(36)  not null
+    id uuid  not null
         constraint constraint_fapmt
             primary key,
     owner              varchar(255) not null,
     requester          varchar(255) not null,
     created_timestamp  bigint       not null,
     granted_timestamp  bigint,
-    resource_id        varchar(36)  not null
+    resource_id uuid  not null
         constraint fk_frsrho213xcx4wnkog83sspmt
             references resource_server_resource,
-    scope_id           varchar(36)
+    scope_id uuid
         constraint fk_frsrho213xcx4wnkog84sspmt
             references resource_server_scope,
-    resource_server_id varchar(36)  not null
+    resource_server_id uuid  not null
         constraint fk_frsrho213xcx4wnkog82sspmt
             references resource_server,
-    policy_id          varchar(36)
+    policy_id uuid
         constraint fk_frsrpo2128cx4wnkog82ssrfy
             references resource_server_policy,
     constraint uk_frsr6t700s9v50bu18ws5pmt
@@ -1376,19 +1376,19 @@ create index if not exists idx_perm_ticket_owner
 
 create table if not exists resource_attribute
 (
-    id          varchar(36) default 'sybase-needs-something-here'::character varying not null
+    id uuid default 'sybase-needs-something-here'::character varying not null
         constraint res_attr_pk
             primary key,
     name        varchar(255)                                                         not null,
     value       varchar(255),
-    resource_id varchar(36)                                                          not null
+    resource_id uuid                                                          not null
         constraint fk_5hrm2vlf9ql5fu022kqepovbr
             references resource_server_resource
 );
 
 create table if not exists resource_uris
 (
-    resource_id varchar(36)  not null
+    resource_id uuid  not null
         constraint fk_resource_server_uris
             references resource_server_resource,
     value       varchar(255) not null,
@@ -1398,10 +1398,10 @@ create table if not exists resource_uris
 
 create table if not exists role_attribute
 (
-    id      varchar(36)  not null
+    id uuid  not null
         constraint constraint_role_attribute_pk
             primary key,
-    role_id varchar(36)  not null
+    role_id uuid  not null
         constraint fk_role_attribute_id
             references keycloak_role,
     name    varchar(255) not null,
@@ -1441,7 +1441,7 @@ create table if not exists org
 
 create table if not exists org_domain
 (
-    id       varchar(36)  not null,
+    id uuid  not null,
     name     varchar(255) not null,
     verified boolean      not null,
     org_id   varchar(255) not null,
