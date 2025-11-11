@@ -90,7 +90,7 @@ class Program
             .ConfigureRunner(rb => rb
                 .AddPostgres()
                 .WithGlobalConnectionString(connectionString)
-                .ScanIn(typeof(Migration_001_InitialSchema).Assembly).For.Migrations())
+                .ScanIn(typeof(Migration_001_CompleteSchema).Assembly).For.Migrations())
             .AddLogging(lb => lb
                 .AddConsole()
                 .SetMinimumLevel(LogLevel.Information))

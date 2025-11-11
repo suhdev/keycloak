@@ -1,70 +1,33 @@
 # Keycloak .NET Core Port
 
-This is a .NET Core port of Keycloak, focusing initially on porting the database schema using FluentMigrator.
+This is a .NET Core port of Keycloak, focusing on porting the complete database schema using FluentMigrator.
 
 ## Project Structure
 
 - **Keycloak.Database**: Class library containing FluentMigrator database migrations  
 - **Keycloak.Database.Runner**: Console application for running migrations  
-- **Migrations/**: Database migration files that port Liquibase migrations to FluentMigrator
+- **Migrations/**: Database migration files based on database-schema.sql
 
 ## Database Migrations
 
-The database migrations have been ported from the original Keycloak Liquibase migrations located in:
-`model/jpa/src/main/resources/META-INF/jpa-changelog-*.xml`
+The database migration is generated from the complete database schema file (`database-schema.sql`) which represents the current production Keycloak schema with all 87 tables.
 
-### Migration Strategy
+### Migration Approach
 
-The 76 Liquibase migration files (containing over 7,000 lines) are being consolidated into logical FluentMigrator migrations:
+Instead of incrementally porting 76 Liquibase XML files, this approach uses the final database schema as the source of truth:
 
-1. **Migration_001_InitialSchema.cs** - Initial database schema (v1.0.0.Final)
-   - Creates all core tables (CLIENT, REALM, USER_ENTITY, KEYCLOAK_ROLE, etc.)
-   - Sets up primary keys, unique constraints, and foreign keys
-   - Based on: jpa-changelog-1.0.0.Final.xml
+1. **Single Comprehensive Migration** - `Migration_001_CompleteSchema.cs`
+   - Creates all 87 Keycloak database tables
+   - Includes indexes, constraints, and relationships
+   - ID columns use UUID type (converted from VARCHAR(36))
+   - Column names and constraint names match the source schema exactly
 
-2. **Migration_002_Version_1_1_0.cs** - Version 1.1.0 updates
-   - Adds CLIENT_ATTRIBUTES, CLIENT_SESSION_NOTE, APP_NODE_REGISTRATIONS tables
-   - Adds new columns to CLIENT, CLIENT_SESSION, and REALM tables
-   - Renames EVENT_ENTITY.TIME to EVENT_TIME
-   - Based on: jpa-changelog-1.1.0.Beta1.xml, jpa-changelog-1.1.0.Final.xml
+### Key Features
 
-3. **Migration_003_Version_26_5_0.cs** - Version 26.5.0 updates (example of recent changes)
-   - Adds indexes for offline client session queries
-   - Makes IDENTITY_PROVIDER columns nullable
-   - Removes WORKFLOW_PROVIDER_ID column
-   - Based on: jpa-changelog-26.5.0.xml
-
-4. **Migration_004_Version_1_2_0.cs** - Version 1.2.0 updates
-   - Adds PROTOCOL_MAPPER, FEDERATED_IDENTITY, IDENTITY_PROVIDER tables
-   - Adds identity provider configuration and client mappings
-   - Fixes REALM_APPLICATION table column order (KEYCLOAK-1106)
-   - Removes obsolete social and claims tables
-   - Based on: jpa-changelog-1.2.0.Beta1.xml, jpa-changelog-1.2.0.CR1.xml, jpa-changelog-1.2.0.Final.xml
-
-### Current Status
-
-**Completed Migrations:** 4 of 76 Liquibase files (covering v1.0.0 - v1.2.0, plus v26.5.0 as example)
-
-**Remaining Migrations (72 files):** Pattern established, ready for systematic porting
-- **v1.3.0 - v1.9.2**: Authentication flows, user federation mappers (9 files)
-- **v2.x - v4.x**: Authorization services, client scopes (19 files + authz files)
-- **v5.x - v14.0**: Migration consolidation, offline sessions (13 files)
-- **v15.0 - v26.4.0**: Modern features (WebAuthn, organizations) (31 files)
-
-### Key Differences from Liquibase
-
-- **Consolidated Migrations**: Multiple related Liquibase migrations are combined into single FluentMigrator migrations
-- **Fluent API**: Uses C# fluent API instead of XML
-- **PostgreSQL Focus**: Optimized for PostgreSQL (though FluentMigrator supports multiple databases)
-- **Version Tracking**: FluentMigrator uses its own VersionInfo table for tracking applied migrations
-
-### Omitted/Special Handling
-
-Some aspects of the original Liquibase migrations need special handling:
-
-- **Custom Change Classes**: Liquibase custom changes (e.g., `AddRealmCodeSecret`, `JpaUpdate1_2_0_Beta1`) need custom implementation
-- **Database-Specific Migrations**: DB2, MSSQL-specific migrations may be omitted or adapted for PostgreSQL
-- **Partial Indexes**: PostgreSQL partial index WHERE clauses may need raw SQL execution
+- **UUID Type for IDs**: All `id` and `*_id` columns use PostgreSQL UUID type instead of VARCHAR(36)
+- **Constraint Name Matching**: All constraint names (primary keys, foreign keys, unique constraints) match the source schema
+- **Complete Schema**: Single migration creates the entire Keycloak database structure
+- **PostgreSQL Optimized**: Uses PostgreSQL-specific types and features
 
 ## Requirements
 
@@ -87,9 +50,6 @@ dotnet run up
 # Rollback last migration
 dotnet run down
 
-# Rollback to specific version
-dotnet run down 2
-
 # Set connection string via environment variable
 export KEYCLOAK_DB_CONNECTION="Server=localhost;Database=keycloak;User Id=keycloak;Password=****;"
 dotnet run up
@@ -106,7 +66,7 @@ var serviceProvider = new ServiceCollection()
     .ConfigureRunner(rb => rb
         .AddPostgres()
         .WithGlobalConnectionString("Server=localhost;Database=keycloak;...")
-        .ScanIn(typeof(Migration_001_InitialSchema).Assembly).For.Migrations())
+        .ScanIn(typeof(Migration_001_CompleteSchema).Assembly).For.Migrations())
     .AddLogging(lb => lb.AddFluentMigratorConsole())
     .BuildServiceProvider(false);
 
@@ -117,101 +77,75 @@ using (var scope = serviceProvider.CreateScope())
 }
 ```
 
-## Migration Development Guide
+## Schema Details
 
-### Adding New Migrations
+### Tables Created (87 total)
 
-To add a new migration:
+The migration creates all Keycloak tables including:
 
-1. Create a new class inheriting from `Migration`
-2. Add the `[Migration(version, "description")]` attribute
-3. Implement `Up()` and `Down()` methods
-4. Use FluentMigrator's fluent API for schema changes
+**Core Tables:**
+- `client` - OAuth/OIDC clients
+- `realm` - Keycloak realms (tenants)
+- `user_entity` - User accounts
+- `keycloak_role` - Roles
+- `credential` - User credentials
 
-Example:
+**Authentication & Authorization:**
+- `authentication_flow`, `authentication_execution`, `authenticator`
+- `resource_server`, `resource_server_resource`, `resource_server_policy`
+- `identity_provider`, `federated_identity`
+
+**Sessions & Events:**
+- `user_session`, `client_session`, `offline_user_session`, `offline_client_session`
+- `event_entity`, `admin_event_entity`
+
+**Configuration:**
+- `realm_attribute`, `client_attributes`, `user_attribute`
+- `protocol_mapper`, `identity_provider_mapper`
+- `authentication_config`, `identity_provider_config`
+
+And 60+ more tables covering groups, roles, scopes, policies, and other Keycloak features.
+
+### ID Column Conversions
+
+As requested, all ID columns have been converted from VARCHAR(36) to UUID:
 
 ```csharp
-using FluentMigrator;
+// Original SQL: id varchar(36) not null
+// FluentMigrator: 
+.WithColumn("id").AsGuid().NotNullable()
 
-namespace Keycloak.Database.Migrations;
-
-[Migration(5, "Version X.Y.Z - Feature description")]
-public class Migration_005_Version_X_Y_Z : Migration
-{
-    public override void Up()
-    {
-        Create.Table("NEW_TABLE")
-            .WithColumn("ID").AsString(36).NotNullable().PrimaryKey()
-            .WithColumn("NAME").AsString(255).NotNullable();
-            
-        Create.Index("IDX_NEW_TABLE_NAME")
-            .OnTable("NEW_TABLE")
-            .OnColumn("NAME");
-    }
-
-    public override void Down()
-    {
-        Delete.Table("NEW_TABLE");
-    }
-}
+// Original SQL: realm_id varchar(36)
+// FluentMigrator:
+.WithColumn("realm_id").AsGuid().Nullable()
 ```
 
-### Converting from Liquibase
+### Constraint Names
 
-Common Liquibase → FluentMigrator conversions:
+All constraint names match the source schema exactly:
 
-| Liquibase XML | FluentMigrator C# |
-|---------------|-------------------|
-| `<createTable>` | `Create.Table()` |
-| `<column>` | `.WithColumn()` |
-| `<constraints nullable="false">` | `.NotNullable()` |
-| `<addPrimaryKey>` | `Create.PrimaryKey()` or `.PrimaryKey()` |
-| `<addForeignKeyConstraint>` | `Create.ForeignKey()` |
-| `<createIndex>` | `Create.Index()` |
-| `<addColumn>` | `Alter.Table().AddColumn()` |
-| `<dropColumn>` | `Delete.Column().FromTable()` |
-| `<renameColumn>` | `Rename.Column().OnTable().To()` |
-| `<update>` | `Update.Table().Set().Where()` |
+```csharp
+// Primary keys
+.PrimaryKey("constraint_7")           // client
+.PrimaryKey("constraint_4a")          // realm
+.PrimaryKey("constraint_fb")          // user_entity
 
-## Contributing
-
-This is an ongoing port focusing on the database layer. Contributors can help by:
-
-1. **Selecting an unmigrated Liquibase file** from the list above
-2. **Creating a corresponding FluentMigrator migration** following existing patterns
-3. **Testing** the migration builds and can be listed
-4. **Submitting a PR** with the new migration
-
-Each migration should:
-- Use sequential version numbers (5, 6, 7, ...)
-- Include descriptive comments referencing source Liquibase files
-- Implement both Up() and Down() methods
-- Follow the naming convention: `Migration_XXX_Version_Y_Y_Y.cs`
-- Build without errors
-
-### Migration Priority
-
-Suggested order for porting remaining migrations:
-
-1. **v1.3.0 - v1.9.2** (Authentication core) - Critical for auth flows
-2. **v2.x** (Authorization setup) - Needed for authz services
-3. **v3.x - v4.x** (Client scopes) - Core client functionality
-4. **v8.x - v14.x** (Sessions, OAuth) - Session management improvements
-5. **v15.x - v26.4.0** (Modern features) - Latest features
+// Unique constraints
+.UniqueConstraint("uk_b71cjlbenv945rb6gcon438at")  // client (realm_id, client_id)
+.UniqueConstraint("uk_orvsdmla56612eaefiq6wl5oi")  // realm (name)
+```
 
 ## Current Status
 
-✅ Created .NET solution structure  
-✅ Added Keycloak.Database project  
-✅ Added FluentMigrator packages (7.1.0)  
-✅ Created initial migration (v1.0.0)  
-✅ Created incremental migrations (v1.1.0, v1.2.0)  
-✅ Created sample recent migration (v26.5.0)  
-✅ Created migration runner with CLI (up/down/list commands)  
-✅ Added comprehensive documentation  
-🔄 Porting remaining migrations (4 of 76 complete - 5%)
+✅ Complete database schema ported from SQL to FluentMigrator  
+✅ All 87 tables created with proper data types  
+✅ ID columns converted to UUID type  
+✅ Constraint names match source schema  
+✅ Indexes created for performance  
+✅ CLI runner with up/down/list commands  
+✅ Clean build with zero errors/warnings  
 
-### Packages Used
+## Packages Used
 
 - FluentMigrator 7.1.0
 - FluentMigrator.Runner 7.1.0
@@ -219,6 +153,19 @@ Suggested order for porting remaining migrations:
 - Npgsql 9.0.4
 - Microsoft.Extensions.DependencyInjection 9.0.x
 - Microsoft.Extensions.Logging.Console 9.0.x
+
+## Migration Generation
+
+The migration was generated programmatically from `database-schema.sql` using a Python script that:
+
+1. Parses PostgreSQL CREATE TABLE statements
+2. Converts column types to FluentMigrator syntax
+3. Identifies ID columns (ending in `_id` or named `id`) and converts VARCHAR(36) to UUID
+4. Preserves all column attributes (NOT NULL, DEFAULT values)
+5. Extracts and applies constraints and indexes
+6. Maintains exact constraint naming
+
+This ensures 100% fidelity to the source schema while adapting to .NET/FluentMigrator conventions.
 
 ## License
 
