@@ -7,6 +7,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Keycloak.Database", "Keyclo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Keycloak.Database.Runner", "Keycloak.Database.Runner\Keycloak.Database.Runner.csproj", "{1487D4B9-8939-4AC2-8A59-629FAAE89D93}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Keycloak.Data", "Keycloak.Data\Keycloak.Data.csproj", "{E17B2F2F-1AF6-45CB-A3DD-11BBAA1FA5EB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Keycloak.Data.Tests", "Keycloak.Data.Tests\Keycloak.Data.Tests.csproj", "{DCF0F1E1-6979-4A70-89B4-8D19822E46B9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -41,6 +45,30 @@ Global
 		{1487D4B9-8939-4AC2-8A59-629FAAE89D93}.Release|x64.Build.0 = Release|Any CPU
 		{1487D4B9-8939-4AC2-8A59-629FAAE89D93}.Release|x86.ActiveCfg = Release|Any CPU
 		{1487D4B9-8939-4AC2-8A59-629FAAE89D93}.Release|x86.Build.0 = Release|Any CPU
+		{E17B2F2F-1AF6-45CB-A3DD-11BBAA1FA5EB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E17B2F2F-1AF6-45CB-A3DD-11BBAA1FA5EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E17B2F2F-1AF6-45CB-A3DD-11BBAA1FA5EB}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{E17B2F2F-1AF6-45CB-A3DD-11BBAA1FA5EB}.Debug|x64.Build.0 = Debug|Any CPU
+		{E17B2F2F-1AF6-45CB-A3DD-11BBAA1FA5EB}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{E17B2F2F-1AF6-45CB-A3DD-11BBAA1FA5EB}.Debug|x86.Build.0 = Debug|Any CPU
+		{E17B2F2F-1AF6-45CB-A3DD-11BBAA1FA5EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E17B2F2F-1AF6-45CB-A3DD-11BBAA1FA5EB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E17B2F2F-1AF6-45CB-A3DD-11BBAA1FA5EB}.Release|x64.ActiveCfg = Release|Any CPU
+		{E17B2F2F-1AF6-45CB-A3DD-11BBAA1FA5EB}.Release|x64.Build.0 = Release|Any CPU
+		{E17B2F2F-1AF6-45CB-A3DD-11BBAA1FA5EB}.Release|x86.ActiveCfg = Release|Any CPU
+		{E17B2F2F-1AF6-45CB-A3DD-11BBAA1FA5EB}.Release|x86.Build.0 = Release|Any CPU
+		{DCF0F1E1-6979-4A70-89B4-8D19822E46B9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DCF0F1E1-6979-4A70-89B4-8D19822E46B9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DCF0F1E1-6979-4A70-89B4-8D19822E46B9}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{DCF0F1E1-6979-4A70-89B4-8D19822E46B9}.Debug|x64.Build.0 = Debug|Any CPU
+		{DCF0F1E1-6979-4A70-89B4-8D19822E46B9}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{DCF0F1E1-6979-4A70-89B4-8D19822E46B9}.Debug|x86.Build.0 = Debug|Any CPU
+		{DCF0F1E1-6979-4A70-89B4-8D19822E46B9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DCF0F1E1-6979-4A70-89B4-8D19822E46B9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DCF0F1E1-6979-4A70-89B4-8D19822E46B9}.Release|x64.ActiveCfg = Release|Any CPU
+		{DCF0F1E1-6979-4A70-89B4-8D19822E46B9}.Release|x64.Build.0 = Release|Any CPU
+		{DCF0F1E1-6979-4A70-89B4-8D19822E46B9}.Release|x86.ActiveCfg = Release|Any CPU
+		{DCF0F1E1-6979-4A70-89B4-8D19822E46B9}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
